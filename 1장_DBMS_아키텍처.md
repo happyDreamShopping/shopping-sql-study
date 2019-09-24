@@ -37,9 +37,15 @@
 **3) Algebraic rewriting**
   - sub-expressions
   ```sql
-  SELECT * 
-  FROM S
+  a = b * c + g;
+  d = b * c * e;
   ```
+  ```
+  tmp = b * c;
+  a = tmp + g;
+  b = tmp * e;
+  ```
+  
 ![Decomposition](/img/1_decomposition_1.PNG)
 ![Decomposition](/img/1_decomposition_2.PNG)
 
