@@ -61,9 +61,11 @@
     - eliminate unnecessary operations
 
 ### 4. Optimization (DDB)
-  - CPU: instruction을 실행하는 비용
-  - I/O: disk I/O 비용
-  - Communication: fragment간 message 초기화 + 전송 비용
+전체 Execution plan의 cost에 대한 최적화
+
+- CPU: 로컬에서 instruction을 실행하는 비용
+- I/O: disk I/O 비용
+- Communication: fragment간 message 초기화 + 전송 비용
 
 ## 2. 버퍼 매니저
 DBMS의 버퍼 영역을 관리하는 역할을 수행함.
