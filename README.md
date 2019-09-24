@@ -1,8 +1,6 @@
 # 쇼핑 SQL 스터디
-![SQL 레벨업](https://www.google.com/url?sa=i&source=images&cd=&ved=2ahUKEwjczNikwejkAhVjFqYKHci4BlEQjRx6BAgBEAQ&url=http%3A%2F%2Fwww.hanbit.co.kr%2Fstore%2Fbooks%2Flook.php%3Fp_code%3DB4250257160&psig=AOvVaw1feZkYIryhuJ9HWtCvxwQn&ust=1569381894270700)
+[<img src="http://www.hanbit.co.kr/data/books/B4250257160_l.jpg" height=400>](http://www.hanbit.co.kr/store/books/look.php?p_code=B4250257160)
 
-- **선정도서**
-    - [SQL 레벨업 - 한빛미디어](http://www.hanbit.co.kr/store/books/look.php?p_code=B4250257160)
 - **발표순서**
     - [ ] `0924` Kickoff Meeting
     - [ ] `None` 1장 DBMS 아키텍처 - 남상욱
