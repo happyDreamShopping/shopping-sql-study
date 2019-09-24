@@ -53,9 +53,9 @@
 ### 3. Localization (DDB)
   - Start query: Algebraic query를 실행한다.
   - Replace relations by fragments: union operation으로 치환한다. 
-  - [Push up union](https://www.slideshare.net/AliUsman10/database-7-query-localization)
+  - [Push up union](https://www.slideshare.net/AliUsman10/database-7-query-localization/17)
     - selection, prediction down
-  - [Simplify](https://www.slideshare.net/AliUsman10/database-7-query-localization)
+  - [Simplify](https://www.slideshare.net/AliUsman10/database-7-query-localization/18)
     - eliminate unnecessary operations
 
 ### 4. Optimization (DDB)
