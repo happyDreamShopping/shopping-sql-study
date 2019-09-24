@@ -36,6 +36,10 @@
 
 **3) Algebraic rewriting**
   - sub-expressions
+  
+  ![Decomposition](/img/1_decomposition_1.PNG)
+  ![Decomposition](/img/1_decomposition_2.PNG)
+
   ```sql
   a = b * c + g;
   d = b * c * e;
@@ -46,8 +50,7 @@
   b = tmp * e;
   ```
   
-![Decomposition](/img/1_decomposition_1.PNG)
-![Decomposition](/img/1_decomposition_2.PNG)
+
 
   - push condition down
   
