@@ -101,4 +101,4 @@ DBMS의 버퍼 영역을 관리하는 역할을 수행함.
 
 
 # 6. References
-  
+- https://www.slideshare.net/AliUsman10/database-7-query-localization
