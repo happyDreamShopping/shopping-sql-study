@@ -22,6 +22,8 @@
   
 ![Decomposition](/img/1_1.PNG)
 
+  - e.g) https://www.slideshare.net/AliUsman10/database-7-query-localization/12
+
 
 **2) Eliminating invalid and redundancy**
   - invalid
