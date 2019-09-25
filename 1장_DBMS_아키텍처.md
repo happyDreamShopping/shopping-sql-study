@@ -8,6 +8,20 @@
 <details>
 <summary>more</summary>
 
+(Distributed) Query Processing
+- Decomposition
+  - Normalization
+  - Eliminating invalid and redundancy
+  - Algebraic rewriting
+- Localization
+  - Start query
+  - Replace relations by fragments
+  - Simplify
+- Optimization
+  - CPU cost
+  - I/O cost
+  - Communication cost
+
 ### 1. Decomposition
 - query에 대한 sanity, syntax 검증을 수행하고, 이를 실행 가능한 standard form으로 변환한다.
 
