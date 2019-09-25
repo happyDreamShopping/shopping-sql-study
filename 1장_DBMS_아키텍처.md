@@ -235,14 +235,75 @@ Redo Log File에 Redo Log를 기록하 는 과정에서 트랜잭션별로 물�
 - 카탈로그 통계 정보 갱신 작업
 - 작성한 SQL구문이 너무 복잡하여 최적의 경로를 선택하지 못하는 경우
 
+- https://customer.elephantsql.com/instance
+- http://www.postgresqltutorial.com/postgresql-insert/
+
 ## 1. 실행계획 확인
+실행 계획의 출력 포맷이 완전히 같진 않지만 공통적으로 나타나는 부분
+
+- 조작 대상 객체: OBJECT_NAME & 인덱스, 파티션, 시퀀스 등의 객체 포함
+- 객체에 대한 조작의 종류
+- 조작 대상이 되는 레코드 수
+
+> 실행계획은 카탈로그 매니저로부터 얻은 통계 정보를 통해 파악한 숫자이다. (실제 테이블을 보지 않는다.)
 
 ## 2. 풀 스캔
+```sql
+EXPLAIN
+SELECT * FROM Shops;
+```
+`Seq Scan` on `shops` (cost=0.00..10.40 `rows=60` width=22)
+
+- 조작 대상 객체: shops
+- 객체에 대한 조작의 종류: Seq Scan
+- 조작 대상이 되는 레코드 수: 60
+
+
 ## 3. 인덱스 스캔
+```sql
+EXPLAIN
+SELECT * FROM Shops WHERE shop_id='00050';
+```
+`Index Scan` using pk_shops on `shops` (cost=0.00..8.27 `rows=1` width=320)
+  Filter: (shop_id = '00050'::bpchar)
+
+- 조작 대상 객체: shops
+- 객체에 대한 조작의 종류
+  - Index Scan
+  - 일반적으로 (모집합 레코드 수 > 선택 레코드 수) 이면 인덱스 스캔이 풀 스캔보다 빠르다. [ref](http://renata.borovica-gajic.com/data/ICDE15_smooth.pdf)
+  ![smooth_scan](/img/4_3.PNG)
+    
+- 조작 대상이 되는 레코드 수: 1
+
+
 ## 4. 테이블 결합
+```sql
+SELECT shop_name
+  FROM Shops S INNER JOIN Reservations R
+    ON S.shop_id = R.shop_id;
+```
+`NESTED LOOP` (cost=0.14.. 14.80 `rows`=10 width=2)
+  -> `Seq Scan` on reservations r (cost=0.00..1.10 rows=10 width=6)
+  -> `Index Scan` using pk_shops on `shops` s (cost=0.14..1.36 rows=1 width=8)
+    Index Cond: (shop_id = r.shop_id)
+
+- 조작 대상 객체: shops
+- 객체에 대한 조작의 종류: NESTED LOOP
+  - 중첩 단계가 깊을수록 먼저 실행
+    - Seq Scan -> Index Scan -> Nested Loop
+  - 중첩 단계가 같으면 위에서 아래로 실행
+    - Reservation(`driving table`) -> SHOPS
+- 조작 대상이 되는 레코드 수: 10
+
   
 # 5. 실행계획의 중요성
-
+- 옵티마이저가 완벽하진 않지만 대체로 우수하다.
+- 옵티마이저가 제대로된 실행 계획을 제공하지 못한다면 정보를 제대로 줘야한다.
+  - 힌트 (이런 기능이 있다는 것이 옵티마이저가 완벽하지 않다는 반증)
+- 실행계획을 사람이 변경하려면...?
+  - SQL 구문들이 어떤 접근 경로로 데이터를 검색하는지
+  - SQL 구문을 제대로 작성하려면 어떤 테이블 설정이 효율적인지
+  - SQL 구문이 주어지면 어떠한 실행 계획이 나올지 예측
 
 # 6. References
 - http://www.grammaticalframework.org/qconv/qconv-a.html
