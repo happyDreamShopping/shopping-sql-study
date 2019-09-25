@@ -5,7 +5,7 @@
 ## 1. 쿼리 평가 엔진 
 사용자로부터 입력받은 SQL구문을 분석하기 위한 계획을 세우고, 이를 실행하는 DBMS 핵심 기능을 담당하는 모듈
 
-<details>
+<details open>
 <summary>more</summary>
 
 (Distributed) Query Processing
@@ -120,7 +120,7 @@ DBMS의 버퍼 영역을 관리하는 역할을 수행함.
 - 갱신 처리는 SQL 구문 실행 시점과 갱신 시점의 차이가 있는 비동기 처리이다.
 > 저장소 검색/갱신에 상당한 시간이 소모되므로, 우선 통지한 뒤 비동기로 처리를 계속하는 구조임
 
-<details>
+<details open>
 <summary>more</summary>
   
 Redo Log Buffer는 아래의 5가지 특성을 지닌다.
