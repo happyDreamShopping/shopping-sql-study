@@ -90,22 +90,65 @@ DBMS의 버퍼 영역을 관리하는 역할을 수행함.
 ## 1. 기억장치
 기억비용(데이터를 저장하는 비용)에 따라 1차, 2차, 3차의 계층으로 나뉘고, 각 저장소를 선택함에 따라 영속성과 속도 간의 트레이드오프가 발생한다.
 
-### 1. 하드디스크
+### 1) 하드디스크
 2차 기억장치로 DBMS의 대부분은 HDD를 선택하며, 어떠한 상황에서 평균적인 수치를 가지는 매체이다.
 
 ## 2. 메모리 버퍼
 디스크에 비해 기억비용이 매우 비싸고 한정적이므로, 모든 내부 데이터를 메모리에 올리는 것은 불가능하다. 따라서 자주 접근하는 데이터를 
 메모리(버퍼 또는 캐시)에 올려둔다면 sql구문의 실행 시간의 대부분을 차지하는 I/O 비용을 큰 폭으로 줄일 수 있다.
 
-### 1. 데이터 캐시
+### 1) 데이터 캐시
 디스크에 있는 데이터의 일부를 메모리에 유지하기 위해 사용하는 메모리 영역
 
-### 2. 로그 버퍼
+### 2) 로그 버퍼
 로그 버퍼는 갱신 처리 (INSERT, DELETE, UPDATE, MERGE)와 관련있다. DBMS는 사용자로부터 입력 받은 갱신과 관련된 SQL 구문을 바로 저장소 데이터를 변경하지 않고, 일단 로그 버퍼에 보나고 이후에 디스크 변경을 수행한다. 갱신 처리는 SQL 구문 실행 시점과 갱신 시점의 차이가 있는 비동기 처리이다.
-  - 저장소 검색/갱신에 상당한 시간이 소모되므로, 우선 통지한 뒤 비동기로 처리를 계속하는 구조임
+> 저장소 검색/갱신에 상당한 시간이 소모되므로, 우선 통지한 뒤 비동기로 처리를 계속하는 구조임
+
+<details>
+<summary>more</summary>
+  
+Redo Log Buffer는 아래의 5가지 특성을 지닌다.
+- Physiological Logging
+- Page Fix Rule
+- Write Ahead Log
+- Log Force At Commit
+- Logical Ordering Of Redo
+
+#### 1) Physiological Logging
+최소의 Logging으로 최대의 복구 기능 제공
+
+![Physiological Logging](/img/1_3_2.PNG)
+
+#### 2) Page Fix Rule
+
+![Page Fix Rule](/img/1_3_3.PNG)
+
+- 변경을 시도하는 블럭에 대한 모든 변경이 성공하기까지 다른 Access 방지
+- 블록에 변경 과정에서 세마포어가 수행되는 프로세스에 대한 것
+
+#### 3) Write Ahead Log
+DML 작업 시 블록의 변경보다 Redo Log를 먼저 생성해 Redo Log Buffer에 기록하는 기법
+- Log Buffer Ahead: 변경하기 위한 버퍼를 데이터베이스 버퍼 캐시에 캐싱한 후 실제 변경을 수행하기 전에 Redo를 Log Buffer에 먼저 기록하는 방식
+- Log File Ahead: DBWR이 변경된 블록 버퍼를 데이터 파일에 기록하기 전에 LGWR(Log Writer)이 Redo Record를 Redo Log File에 기록하는 방식이다.
+
+![Write Ahead Log](/img/1_3_4.PNG)
+
+- 블록이 변경된 후 Redo Log를 생성하지 못하고 데이터베이스가 비정상 종료되는 경우, 복구가 불가
+- 이를 위해 블록을 변경하기 전 반드시 Redo Log를 생성하는 Write-Ahead Logging 기법을 사용함
+
+
+#### 4) Log Force At Commit
+#### 5) Logical Ordering Of Redo
+  
+</details>
+
 
 ## 3. 메모리 트레이드오프
+### 1. 휘발성
+- DBMS의 장애로 인하여 프로세스다운이 일어나면 모든 데이터가 유실되어, 부정합이 발생함
+- 로그 버퍼 위에 존재하는 데이터가 
 
+### 2. 
 
 ## 4. 시스템 트레이드오프
 ## 5. 워킹 메모리
@@ -132,3 +175,4 @@ DBMS의 버퍼 영역을 관리하는 역할을 수행함.
 # 6. References
 - http://www.grammaticalframework.org/qconv/qconv-a.html
 - https://www.slideshare.net/AliUsman10/database-7-query-localization
+- http://www.gurubee.net/lecture/2666
