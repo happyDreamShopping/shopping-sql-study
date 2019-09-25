@@ -93,7 +93,7 @@ DBMS의 버퍼 영역을 관리하는 역할을 수행함.
 ### 1) 하드디스크
 2차 기억장치로 DBMS의 대부분은 HDD를 선택하며, 어떠한 상황에서 평균적인 수치를 가지는 매체이다.
 
-## 2. 메모리 버퍼
+## 2. 메모리 위에 있는 두개의 버퍼
 디스크에 비해 기억비용이 매우 비싸고 한정적이므로, 모든 내부 데이터를 메모리에 올리는 것은 불가능하다. 따라서 자주 접근하는 데이터를 
 메모리(버퍼 또는 캐시)에 올려둔다면 sql구문의 실행 시간의 대부분을 차지하는 I/O 비용을 큰 폭으로 줄일 수 있다.
 
@@ -101,7 +101,9 @@ DBMS의 버퍼 영역을 관리하는 역할을 수행함.
 디스크에 있는 데이터의 일부를 메모리에 유지하기 위해 사용하는 메모리 영역
 
 ### 2) 로그 버퍼
-로그 버퍼는 갱신 처리 (INSERT, DELETE, UPDATE, MERGE)와 관련있다. DBMS는 사용자로부터 입력 받은 갱신과 관련된 SQL 구문을 바로 저장소 데이터를 변경하지 않고, 일단 로그 버퍼에 보나고 이후에 디스크 변경을 수행한다. 갱신 처리는 SQL 구문 실행 시점과 갱신 시점의 차이가 있는 비동기 처리이다.
+- 로그 버퍼는 갱신 처리 (INSERT, DELETE, UPDATE, MERGE)와 관련있다. DBMS는 사용자로부터 입력 받은 갱신과 관련된 SQL 구문을 바로 저장소 데이터를 변경하지 않는다. 
+- 일단 로그 버퍼에 보나고 이후에 디스크 변경을 수행한다. 
+- 갱신 처리는 SQL 구문 실행 시점과 갱신 시점의 차이가 있는 비동기 처리이다.
 > 저장소 검색/갱신에 상당한 시간이 소모되므로, 우선 통지한 뒤 비동기로 처리를 계속하는 구조임
 
 <details>
@@ -138,8 +140,16 @@ DML 작업 시 블록의 변경보다 Redo Log를 먼저 생성해 Redo Log Buff
 
 
 #### 4) Log Force At Commit
+사용자로부터 Commit 요청이 들어오면 관련된 모든 Redo Record들은 Redo Log file에 저장한 후 Commit을 완료
+
+![Log Force At Commit](/img/1_3_5.PNG)
+
+- Piggyback Write/Group Commit: 동시에 여러 사용자에 의해 발생한 트랜잭션에 대한 Commit을 한 번씩 LGWR에 의해 기록하는 경우 디스크 I/O가 과다하게 발생한다. 이에 한 번에 여러 개의 Redo Log를 Redo Log File에 기록하여 디스크 부하를 줄이는 방식이다.
+
+
 #### 5) Logical Ordering Of Redo
-  
+Redo Log File에 Redo Log를 기록하 는 과정에서 트랜잭션별로 물리적인 순서를 정하는 것이 아니라 SCN 에 의해 논리적인 순서를 정해 저장하는 기법
+ 
 </details>
 
 
@@ -176,3 +186,4 @@ DML 작업 시 블록의 변경보다 Redo Log를 먼저 생성해 Redo Log Buff
 - http://www.grammaticalframework.org/qconv/qconv-a.html
 - https://www.slideshare.net/AliUsman10/database-7-query-localization
 - http://www.gurubee.net/lecture/2666
+- https://o2sunn.tistory.com/20
