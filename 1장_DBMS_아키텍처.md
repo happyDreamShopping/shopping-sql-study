@@ -270,7 +270,7 @@ SELECT * FROM Shops WHERE shop_id='00050';
 - 조작 대상 객체: shops
 - 객체에 대한 조작의 종류
   - Index Scan
-  - 일반적으로 (모집합 레코드 수 > 선택 레코드 수) 이면 인덱스 스캔이 풀 스캔보다 빠르다. [ref](http://renata.borovica-gajic.com/data/ICDE15_smooth.pdf)
+  - 일반적으로 (모집합 레코드 수 > 선택 레코드 수) 이면 인덱스 스캔이 풀 스캔보다 빠르다. [*](http://renata.borovica-gajic.com/data/ICDE15_smooth.pdf)
   ![smooth_scan](/img/4_3.PNG)
     
 - 조작 대상이 되는 레코드 수: 1
