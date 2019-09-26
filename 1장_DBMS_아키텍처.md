@@ -283,7 +283,9 @@ SELECT shop_name
     ON S.shop_id = R.shop_id;
 ```
 `NESTED LOOP` (cost=0.14.. 14.80 `rows`=10 width=2)
+  
   -> `Seq Scan` on reservations r (cost=0.00..1.10 rows=10 width=6)
+  
   -> `Index Scan` using pk_shops on `shops` s (cost=0.14..1.36 rows=1 width=8)
     Index Cond: (shop_id = r.shop_id)
 
