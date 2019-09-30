@@ -2,8 +2,8 @@
 [<img src="http://www.hanbit.co.kr/data/books/B4250257160_l.jpg" height=400>](http://www.hanbit.co.kr/store/books/look.php?p_code=B4250257160)
 
 - **발표순서**
-    - [ ] `0924` Kickoff Meeting
-    - [ ] `None` 1장 DBMS 아키텍처 - 남상욱
+    - [x] `0924` Kickoff Meeting
+    - [x] `None` 1장 DBMS 아키텍처 - 남상욱
     - [ ] `None` 2장 SQL 기초 - 이성준
     - [ ] `None` 3장 SQL의 조건 분기 - 김슬아
     - [ ] `None` 4장 집약과 자르기 - 이정혁
