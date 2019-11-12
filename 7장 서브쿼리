@@ -1,0 +1,467 @@
+# 7장 서브쿼리
+
+<br>
+
+## 서브쿼리가 일으키는 폐해
+
+### 서브쿼리의 문제점
+
+- 연산 비용 추가 - 서브쿼리는 SQL 구문 실행 중에만 비영속적인 생존 기간을 갖는다. 그래서 **서브쿼리에 접근할 때마다 SELECT 구문을 실행해서 데이터를 만들어야 한다.**
+- 데이터 I/O 비용 발생 - 서브쿼리로 조회되는 **데이터의 양이 큰 경우 DBMS가 저장소에 있는 파일에 결과를 쓸때도 있습니다.** --> TEMP 탈락 현상
+- 최적화를 받을 수 없음 - 명시적인 제약 또는 인덱스가 있는 테이블과 달리, 서브쿼리에는 그러한 메타 정보가 하나도 존재하지 않습니다. **옵티마이저가 쿼리를 해석하기 위해 필요한 정보를 서브쿼리에서는 얻을 수 없다.**
+
+<br>
+
+### 예제
+
+고객의 구입 명세 정보를 기록하는 테이블이 있습니다.
+
+<br>
+
+```sql
+create table Receipts
+(cust_id CHAR(1) NOT NULL,
+ seq INTEGER NOT NULL,
+ price INTEGER NOT NULL,
+ PRIMARY KEY (cust_id, seq));
+ 
+ INSERT INTO Receipts VALUES('A', 1, 500);
+ INSERT INTO Receipts VALUES('A', 2, 1000);
+ INSERT INTO Receipts VALUES('A', 3, 700);
+ INSERT INTO Receipts VALUES('B', 5, 100);
+ INSERT INTO Receipts VALUES('B', 6, 5000);
+ INSERT INTO Receipts VALUES('B', 7, 300);
+ INSERT INTO Receipts VALUES('B', 9, 200);
+ INSERT INTO Receipts VALUES('B', 12, 1000);
+ INSERT INTO Receipts VALUES('C', 10, 600);
+ INSERT INTO Receipts VALUES('C', 20, 600);
+ INSERT INTO Receipts VALUES('C', 45, 200);
+ INSERT INTO Receipts VALUES('C', 70, 50);
+ INSERT INTO Receipts VALUES('D', 3, 2000);
+```
+
+<br>
+
+고객(cust_id)별 최소 순번값(seq)과 가격(price)을 구하라
+
+| CUST_ID | SEQ  | PRICE |
+| :------ | :--- | :---- |
+| A       | 1    | 500   |
+| B       | 5    | 100   |
+| C       | 10   | 600   |
+| D       | 3    | 2000  |
+
+<br>
+
+<br>
+
+#### 서브쿼리를 사용한 방법
+
+최소 순번을 구한 테이블과 조인하는 방법
+
+<br>
+
+Page 247 참고
+
+```sql
+select R1.cust_id, R1.seq, R1.price
+From Receipts R1
+INNER JOIN (select cust_id, MIN(seq) AS min_seq
+            from Receipts
+            group by cust_id) R2
+ON R1.cust_id=R2.cust_id
+AND R1.seq=R2.min_seq
+```
+
+<br>
+
+```
+-----------------------------------------------------------------------------
+| Id  | Operation            | Name        | Rows | Bytes | Cost | Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT     |             |    4 |   180 |    6 | 00:00:01 |
+| * 1 |   HASH JOIN          |             |    4 |   180 |    6 | 00:00:01 |
+|   2 |    TABLE ACCESS FULL | RECEIPTS    |   13 |   377 |    3 | 00:00:01 |
+|   3 |    VIEW              |             |   13 |   208 |    2 | 00:00:01 |
+|   4 |     HASH GROUP BY    |             |   13 |   208 |    2 | 00:00:01 |
+|   5 |      INDEX FULL SCAN | SYS_C006995 |   13 |   208 |    2 | 00:00:01 |
+-----------------------------------------------------------------------------
+```
+
+<br>
+
+==> 코드가 복잡해서 가독성이 떨어진다.
+
+==> 성능이 나쁘다
+
+- 서브쿼리는 대부분 일시적인 영역에 확보되므로 오버헤드가 생긴다
+- 서브쿼리는 인덱스 또는 제약 정보를 가지지 않기 떄문에 최적화되지 못한다.
+- 위 쿼리는 조인이 필요하기 때문에 비용이 높고 실행 계획 변동 리스크가 발생한다.
+- Receipts 테이블에 스캔이 두 번 필요하다.
+
+<br>
+
+#### 상관 서브쿼리를 사용한 동치 변환
+
+```sql
+select R1.cust_id, R1.seq, R1.price
+From Receipts R1
+where seq = (select MIN(seq)
+            from Receipts R2
+            where R1.cust_id=R2.cust_id)
+```
+
+<br>
+
+```
+----------------------------------------------------------------------------------------
+| Id  | Operation                       | Name        | Rows | Bytes | Cost | Time     |
+----------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                |             |    4 |   116 |    5 | 00:00:01 |
+| * 1 |   FILTER                        |             |      |       |      |          |
+|   2 |    TABLE ACCESS FULL            | RECEIPTS    |   13 |   377 |    3 | 00:00:01 |
+|   3 |    SORT AGGREGATE               |             |    1 |    16 |      |          |
+|   4 |     FIRST ROW                   |             |    1 |    16 |    2 | 00:00:01 |
+| * 5 |      INDEX RANGE SCAN (MIN/MAX) | SYS_C006995 |    1 |    16 |    2 | 00:00:01 |
+----------------------------------------------------------------------------------------
+```
+
+<br>
+
+INDEX RANGE SCAN을 하기 때문에 위의 서브쿼리보다는 빠르지만, Receipts 테이블에 접근과 기본 키의 인덱스에 접근이 필요 합니다.
+
+<br>
+
+#### 윈도우 함수로 결합을 제거
+
+**SQL 튜닝에서 가장 중요한 부분은 I/O를 줄이는 것**입니다. 
+
+아래와 같이 Receipts에 대한 접근을 한번으로 줄여봅니다.
+
+<br>
+
+```sql
+select cust_id, seq, price
+From (select cust_id, seq, price,
+            ROW_NUMBER() OVER 
+              (PARTITION BY cust_id ORDER BY seq) as row_seq
+            from Receipts ) work
+where work.row_seq = 1;
+```
+
+==> 쿼리도 간단해졌고 가독성도 올라갔습니다.
+
+<br>
+
+```
+--------------------------------------------------------------------------------
+| Id  | Operation                  | Name     | Rows | Bytes | Cost | Time     |
+--------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT           |          |   13 |   546 |    4 | 00:00:01 |
+| * 1 |   VIEW                     |          |   13 |   546 |    4 | 00:00:01 |
+| * 2 |    WINDOW SORT PUSHED RANK |          |   13 |   377 |    4 | 00:00:01 |
+|   3 |     TABLE ACCESS FULL      | RECEIPTS |   13 |   377 |    3 | 00:00:01 |
+--------------------------------------------------------------------------------
+```
+
+<br>
+
+| cust_id | seq  | price | row_seq |
+| :------ | :--- | :---- | :------ |
+| A       | 1    | 500   | 1       |
+| A       | 2    | 1000  | 2       |
+| A       | 3    | 700   | 3       |
+| B       | 5    | 100   | 1       |
+| B       | 6    | 5000  | 2       |
+| B       | 7    | 300   | 3       |
+| B       | 9    | 200   | 4       |
+| B       | 12   | 1000  | 5       |
+| C       | 10   | 600   | 1       |
+| C       | 20   | 600   | 2       |
+| C       | 45   | 200   | 3       |
+| C       | 70   | 50    | 4       |
+| D       | 3    | 2000  | 1       |
+
+<br>
+
+### 장기적인 관점에서의 리스크 관리
+
+위의 쿼리는 어쨋든 처음 사용했던 쿼리와 비교해보면 **조인을 사용한 부분**을 제거했는데요,
+
+이렇게 하면 **성능향상** 뿐아니라 **안정성 확보**도 기대할 수 있습니다.
+
+<br>
+
+조인을 사용한 쿼리는 다음과 같은 두 개의 불안정 요소가 있습니다.
+
+- 조인 알고리즘의 변동 리스크
+- 환경 요인에 의한 지연 리스크(인덱스, 메모리 매개변수)
+
+<br>
+
+#### 알고리즘 변동 리스크
+
+6장에서 보았던 것처럼 조인 알고리즘에는 크게 Nested Loops, Sort Merge, Hash이 있습니다.
+
+레코드 수가 적은 테이블이 포함된 경우에는 Nested Loops, 큰 테이블들을 결합하는 경우 Sort Merge, Hash가 선택되기 쉽습니다.
+
+처음에는 테이블 수가 적어 NL을 쓰다가 운영하면서 데이터가 많아지면 변동이 생길 수 있습니다. 좋아질수도 있지만 악화될 수도 있습니다.
+
+Sort Merge, Hash에 필요한 메모리가 부족해서 TEMP 탈락현상이 발생할 수도 있습니다.
+
+<br>
+
+#### 환경 요인에 의한 지연 리스크
+
+작업 메모리를 늘려주거나, 인덱스를 걸어야하는 등 한정된 리소스 내부에서 트레이드 오프를 발생시킵니다.
+
+조인을 사용한다는 것은 장기적 관점에서 고려해야할 리스크를 늘리게 된다는 뜻입니다.
+
+<br>
+
+==> 실행 계획이 단순할수록 성능이 안정적이다.
+
+==> 엔지니어는 기능 뿐만 아니라 비기능적인 부분도 보장할 책임이 있다.
+
+<br>
+
+<br>
+
+### 서브쿼리 응용
+
+위의 RECEIPTS 테이블 문제에서 더 나아가 고객의 최대 순번의 가격과 최소 순번의 가격의 차를 구하는 것입니다.
+
+<br>
+
+| cust_id | diff |
+| :------ | :--- |
+| A       | -200 |
+| B       | -900 |
+| C       | 550  |
+| D       | 0    |
+
+<br>
+
+```sql
+select TMP_MIN.cust_id, TMP_MIN.price - TMP_MAX.price as diff
+from (select R1.cust_id, R1.seq, R1.price
+     from Receipts R1
+     inner join (select cust_id, MIN(seq) as min_seq
+                from Receipts
+                group by cust_id) R2
+     on R1.cust_id=R2.cust_id
+     and R1.seq=R2.min_seq) TMP_MIN
+inner join (select R3.cust_id, R3.seq, R3.price
+            from Receipts R3
+            inner join (select cust_id, MAX(seq) as max_seq
+                from Receipts
+                group by cust_id) R4
+     on R3.cust_id=R4.cust_id
+     and R3.seq=R4.max_seq) TMP_MAX
+ON TMP_MIN.cust_id=TMP_MAX.cust_id
+```
+
+==> 쿼리가 더 길어졌고, 테이블 접근도 4번 이루어짐
+
+```
+-------------------------------------------------------------------------------
+| Id  | Operation              | Name        | Rows | Bytes | Cost | Time     |
+-------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT       |             |    3 |   270 |   12 | 00:00:01 |
+| * 1 |   HASH JOIN            |             |    3 |   270 |   12 | 00:00:01 |
+| * 2 |    HASH JOIN           |             |   11 |   814 |    9 | 00:00:01 |
+| * 3 |     HASH JOIN          |             |    4 |   180 |    6 | 00:00:01 |
+|   4 |      TABLE ACCESS FULL | RECEIPTS    |   13 |   377 |    3 | 00:00:01 |
+|   5 |      VIEW              |             |   13 |   208 |    2 | 00:00:01 |
+|   6 |       HASH GROUP BY    |             |   13 |   208 |    2 | 00:00:01 |
+|   7 |        INDEX FULL SCAN | SYS_C006995 |   13 |   208 |    2 | 00:00:01 |
+|   8 |     TABLE ACCESS FULL  | RECEIPTS    |   13 |   377 |    3 | 00:00:01 |
+|   9 |    VIEW                |             |   13 |   208 |    2 | 00:00:01 |
+|  10 |     HASH GROUP BY      |             |   13 |   208 |    2 | 00:00:01 |
+|  11 |      INDEX FULL SCAN   | SYS_C006995 |   13 |   208 |    2 | 00:00:01 |
+-------------------------------------------------------------------------------
+```
+
+<br>
+
+<br>
+
+
+
+윈도우 함수로 테이블 접근과 조인을 줄이자
+
+```sql
+select cust_id, 
+      SUM(case when min_seq=1 then price else 0 end)
+       - SUM(case when max_seq=1 then price else 0 end) as diff
+from (select cust_id, price,
+      ROW_NUMBER() OVER (PARTITION BY cust_id ORDER BY seq) as min_seq,
+      ROW_NUMBER() OVER (PARTITION BY cust_id ORDER BY seq DESC) as max_seq
+      from Receipts ) work
+where work.min_seq=1
+or work.max_seq=1
+group by cust_id;
+```
+
+<br>
+
+```
+-----------------------------------------------------------------------------
+| Id  | Operation               | Name     | Rows | Bytes | Cost | Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT        |          |   13 |   546 |    5 | 00:00:01 |
+|   1 |   SORT GROUP BY NOSORT  |          |   13 |   546 |    5 | 00:00:01 |
+| * 2 |    VIEW                 |          |   13 |   546 |    5 | 00:00:01 |
+|   3 |     WINDOW SORT         |          |   13 |   377 |    5 | 00:00:01 |
+|   4 |      WINDOW SORT        |          |   13 |   377 |    5 | 00:00:01 |
+|   5 |       TABLE ACCESS FULL | RECEIPTS |   13 |   377 |    3 | 00:00:01 |
+-----------------------------------------------------------------------------
+```
+
+<br>
+
+http://sqlfiddle.com/#!4/2583f5/9
+
+<br>
+
+<br>
+
+## 서브쿼리 사용이 더 나은 경우
+
+**조인할 때는 최대한 조인 대상 레코드 수를 줄이는 것이 중요**합니다.
+
+<br>
+
+### 예제
+
+아래 1:N 관계를 가진 회사 테이블과 사업소 테이블이 있습니다.
+
+```sql
+create table Companies
+(co_cd char(3) not null,
+ district char(1) not null,
+ constraint pk_Companies primary key(co_cd));
+ 
+ insert into Companies values('001', 'A');
+ insert into Companies values('002', 'B');
+ insert into Companies values('003', 'C');
+ insert into Companies values('004', 'D');
+```
+
+<br>
+
+```sql
+create table Shops
+(co_cd char(3) not null,
+ shop_id char(3) not null,
+ emp_nbr integer not null,
+ main_flg char(1) not null,
+ constraint pk_Shops primary key(co_cd, shop_id));
+ 
+ insert into Shops values('001', '1', 300, 'Y');
+ insert into Shops values('001', '2', 400, 'N');
+ insert into Shops values('001', '3', 250, 'Y');
+ insert into Shops values('002', '1', 100, 'Y');
+ insert into Shops values('002', '2', 20, 'N');
+ insert into Shops values('003', '1', 400, 'Y');
+ insert into Shops values('003', '2', 500, 'Y');
+ insert into Shops values('003', '3', 300, 'N');
+ insert into Shops values('003', '4', 200, 'Y');
+ insert into Shops values('004', '1', 999, 'Y');
+```
+
+<br>
+
+위 두개의 테이블을 사용해, 회사마다 주요 사업소(main_flg = 'Y')의 직원 수를 구하세요
+
+<br>
+
+| co_cd | **district** | sum_emp |
+| :---- | :----------- | :------ |
+| 001   | A            | 550     |
+| 002   | B            | 100     |
+| 003   | C            | 1100    |
+| 004   | D            | 999     |
+
+<br>
+
+1. 조인부터하고 집약을 하는 방법
+
+```sql
+select C.co_cd, max(C.district) as district, sum(emp_nbr) as sum_emp
+from Companies C
+inner join Shops S on C.co_cd = S.co_cd
+where main_flg = 'Y'
+group by C.co_cd
+```
+
+<br>
+
+```
+----------------------------------------------------------------------------
+| Id  | Operation             | Name      | Rows | Bytes | Cost | Time     |
+----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT      |           |    7 |   203 |    8 | 00:00:01 |
+|   1 |   HASH GROUP BY       |           |    7 |   203 |    8 | 00:00:01 |
+| * 2 |    HASH JOIN          |           |    7 |   203 |    7 | 00:00:01 |
+|   3 |     TABLE ACCESS FULL | COMPANIES |    4 |    32 |    3 | 00:00:01 |
+| * 4 |     TABLE ACCESS FULL | SHOPS     |    7 |   147 |    3 | 00:00:01 |
+----------------------------------------------------------------------------
+```
+
+조인 대상 레코드 수
+
+Companies 테이블 : 4개
+
+Shops 테이블 : 10개
+
+<br>
+
+2. 집약 먼저하고 조인하기
+
+```sql
+select C.co_cd, C.district, sum_emp
+from Companies C
+inner join (select co_cd, sum(emp_nbr) as sum_emp
+            from Shops 
+            where main_flg = 'Y'
+            group by co_cd) CSUM
+on C.co_cd = CSUM.co_cd
+```
+
+<br>
+
+```
+-----------------------------------------------------------------------------
+| Id  | Operation              | Name      | Rows | Bytes | Cost | Time     |
+-----------------------------------------------------------------------------
+|   0 | SELECT STATEMENT       |           |    7 |   182 |    8 | 00:00:01 |
+| * 1 |   HASH JOIN            |           |    7 |   182 |    8 | 00:00:01 |
+|   2 |    TABLE ACCESS FULL   | COMPANIES |    4 |    32 |    3 | 00:00:01 |
+|   3 |    VIEW                |           |    7 |   126 |    4 | 00:00:01 |
+|   4 |     HASH GROUP BY      |           |    7 |   147 |    4 | 00:00:01 |
+| * 5 |      TABLE ACCESS FULL | SHOPS     |    7 |   147 |    3 | 00:00:01 |
+-----------------------------------------------------------------------------
+```
+
+조인 대상 레코드 수
+
+Companies 테이블 : 4개
+
+Shops 테이블(CSUM) : 4개
+
+<br>
+
+위의 경우, 성능면에서 큰차이가 없겠지만 테이블의 레코드 수가 엄청 많다면? 집약 먼저하고 조인하는 방법이 더 나을 것입니다.
+
+<br>
+
+http://sqlfiddle.com/#!4/ddaf1/4
+
+<br>
+
+EXISTS vs JOIN and use of EXISTS clause
+
+https://stackoverflow.com/questions/7082449/exists-vs-join-and-use-of-exists-clause
+
+<br>
