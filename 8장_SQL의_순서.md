@@ -27,9 +27,9 @@ FROM Weights;
 > WindowAgg (cost=0.15..93.45 rows=1510 width=20)  
 > &nbsp;&nbsp;&nbsp;&nbsp; -> Index Only Scan using weights_pkey on weights (cost=0.15..70.80 rows=1510 width=20)
 
-**상관 서브쿼리 사용** (MySQL처럼 ROW_NUMBER 함수를 사용할 수 없는 경우)
-- ❓서브쿼리가 재귀 잡합을 만들고 요소 수를 COUNT 함수로 셈
-- ❓기본키인 student_id를 비교 키로 사용하므로, 재귀 잡합의 요소가 한 개씩 상승
+**상관 서브쿼리 사용** (MySQL처럼 ROW_NUMBER 함수를 사용할 수 없는 경우)❓
+- 서브쿼리가 재귀 집합을 만들고 요소 수를 COUNT 함수로 셈
+- 기본키인 student_id를 비교 키로 사용하므로, 재귀 집합의 요소가 한 개씩 상승
 
 ```sql
 SELECT student_id,
@@ -40,8 +40,8 @@ FROM Weights W1;
 ```
 - Sequence Scan이 2회 발생
 
-> **QUERY PLAN**  
-> Seq Scan on weights w1 (cost=0.00..38689.78 rows=1510 width=20) //SQL Fiddle  
+> **QUERY PLAN (Fiddle)** ❓  
+> Seq Scan on weights w1 (cost=0.00..38689.78 rows=1510 width=20)  
 > &nbsp;&nbsp;&nbsp;&nbsp; SubPlan 1  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Aggregate (cost=25.60..25.61 rows=1 width=0)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Bitmap Heap Scan on weights w2 (> cost=8.05..24.34 rows=503 width=0)  
@@ -49,8 +49,8 @@ FROM Weights W1;
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Bitmap Index Scan on weights_pkey (cost=0.00..7.92 rows=503 width=0)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; Index Cond: (student_id <= w1.student_id)  
 
-> **QUERY PLAN**  
-> Seq Scan on weights w1 (cost=0.00..8.79 rows=7 width=5) //책  
+> **QUERY PLAN (책)**    
+> Seq Scan on weights w1 (cost=0.00..8.79 rows=7 width=5)  
 > &nbsp;&nbsp;&nbsp;&nbsp; Subplan 1  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Aggregate (cost=1.09..1.10 rows=1 width=0)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Seq Scan on weights w2 (cost=0.00..1.09 rows=2 width=0)  
@@ -414,24 +414,24 @@ TMP1
 
 |num|next_diff|prev_diff|seq|
 |:-:|:-------:|:-------:|:-:|
-| 1 |   2     | (null)  | 1 |
+| 1 |   2     |   null  | 1 |
 | 3 |   1     |    2    | 2 |
 | 4 |   3     |    1    | 3 |
 | 7 |   1     |    3    | 4 |
 | 8 |   1     |    1    | 5 |
 | 9 |   3     |    1    | 6 |
-|12 | (null)  |    3    | 7 |
+| 12|  null   |    3    | 7 |
 
 TMP2
 
 | low  | high |seq|
 |:----:|:----:|:-:|
-|  1   |   1  | 1 |
-|  3   |(null)| 2 |
-|(null)|  4   | 3 |
-|  7   |(null)| 4 |
-|(null)|(null)| 5 |
-|(null)|  9   | 6 |
+|  1   |  1   | 1 |
+|  3   | null | 2 |
+| null |  4   | 3 |
+|  7   | null | 4 |
+| null | null | 5 |
+| null |  9   | 6 |
 |  12  |  12  | 7 |
 
 TMP3
@@ -440,10 +440,10 @@ TMP3
 |:----:|:----:|
 |  1   |  1   |
 |  3   |  4   |
-|(null)|  4   |
+| null |  4   |
 |  7   |  9   |
-|(null)|  9   |
-|(null)|  9   |
+| null |  9   |
+| null |  9   |
 |  12  |  12  |
 
 최종
