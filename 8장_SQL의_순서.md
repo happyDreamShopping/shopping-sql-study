@@ -6,10 +6,10 @@
 
 |<U>student_id</U>|weight|    |<U>student_id</U>|seq|
 |:---------------:|:----:|:--:|:---------------:|:-:|
-|A100             |	 50  |    |A100             | 1 |
+|A100             |	50  |    |A100             | 1 |
 |A101             |  55  |    |A101             | 2 |
 |A124             |  55  |    |A124             | 3 |
-|A346             |  60  | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|A346             | 4 |
+|A346             |  60  | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |A346             | 4 |
 |B343             |  72  |    |B343             | 5 |
 |C345             |  72  |    |C345             | 6 |
 |C563             |  72  |    |C563             | 7 |
@@ -60,15 +60,15 @@ FROM Weights W1;
 ### 2. 기본 키가 여러 개의 필드로 구성되는 경우
 기본 키가 두개인 Weights2 테이블에 순번 붙이기 [`SQL2`](http://sqlfiddle.com/#!15/1c027/3)
 
-|<U>class</U>|<U>student_id</U>|weights|                                                    |<U>class</U>|<U>student_id</U>|seq|
-|:----------:|:---------------:|:-----:|                                                    |:----------:|:---------------:|:-:|
-|1           |100              |   50  |                                                    |1           |100              | 1 |
-|1           |101              |   55  |                                                    |1           |101              | 2 |
-|1           |102              |   56  |                                                    |1           |102              | 3 |
-|2           |100              |   60  |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|2           |100              | 4 |
-|2           |101              |   72  |                                                    |2           |101              | 5 |
-|2           |102              |   73  |                                                    |2           |102              | 6 |
-|2           |103              |   73  |                                                    |2           |103              | 7 |
+|<U>class</U>|<U>student_id</U>|weights|    |<U>class</U>|<U>student_id</U>|seq|
+|:----------:|:---------------:|:-----:|:--:|:----------:|:---------------:|:-:|
+|1           |100              |   50  |    |1           |100              | 1 |
+|1           |101              |   55  |    |1           |101              | 2 |
+|1           |102              |   56  |    |1           |102              | 3 |
+|2           |100              |   60  | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |2           |100              | 4 |
+|2           |101              |   72  |    |2           |101              | 5 |
+|2           |102              |   73  |    |2           |102              | 6 |
+|2           |103              |   73  |    |2           |103              | 7 |
 
 **윈도우 함수 사용**
 - ORDER BY의 키에 필드를 추가
@@ -99,15 +99,15 @@ FROM Weights2 W1;
 Weights2 테이블에 학급마다 순번 붙이기 [`SQL3`](http://sqlfiddle.com/#!17/1c027/2)  
 (테이블을 그룹으로 나누고 그룹마다 내부 레코드에 순번을 붙이기)
 
-|<U>class</U>|<U>student_id</U>|weights|                                                    |<U>class</U>|<U>student_id</U>|seq|
-|:----------:|:---------------:|:-----:|                                                    |:----------:|:---------------:|:-:|
-|1           |100              |   50  |                                                    |1           |100              | 1 |
-|1           |101              |   55  |                                                    |1           |101              | 2 |
-|1           |102              |   56  |                                                    |1           |102              | 3 |
-|2           |100              |   60  |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|2           |100              | 1 |
-|2           |101              |   72  |                                                    |2           |101              | 2 |
-|2           |102              |   73  |                                                    |2           |102              | 3 |
-|2           |103              |   73  |                                                    |2           |103              | 4 |
+|<U>class</U>|<U>student_id</U>|weights|    |<U>class</U>|<U>student_id</U>|seq|
+|:----------:|:---------------:|:-----:|:--:|:----------:|:---------------:|:-:|
+|1           |100              |   50  |    |1           |100              | 1 |
+|1           |101              |   55  |    |1           |101              | 2 |
+|1           |102              |   56  |    |1           |102              | 3 |
+|2           |100              |   60  | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |2           |100              | 1 |
+|2           |101              |   72  |    |2           |101              | 2 |
+|2           |102              |   73  |    |2           |102              | 3 |
+|2           |103              |   73  |    |2           |103              | 4 |
 
 **윈도우 함수 사용**
 - class 필드에 PARTITION BY 적용
@@ -132,15 +132,15 @@ FROM Weights2 W1;
 ### 4. 순번과 갱신
 Weights3 테이블에 seq(순번) 필드를 UPDATE (채우기) [`SQL4`](http://sqlfiddle.com/#!15/f14dd5/1)
 
-|<U>class</U>|<U>student_id</U>|weights|  seq |                                                    |<U>class</U>|<U>student_id</U>|weights|seq|
-|:----------:|:---------------:|:-----:|:----:|                                                    |:----------:|:---------------:|:-----:|:-:|
-|1           |100              |   50  | null |                                                    |1           |100              |   50  | 1 |
-|1           |101              |   55  | null |                                                    |1           |101              |   55  | 2 |
-|1           |102              |   56  | null |                                                    |1           |102              |   56  | 3 |
-|2           |100              |   60  | null |&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|2           |100              |   60  | 1 |
-|2           |101              |   72  | null |                                                    |2           |101              |   72  | 2 |
-|2           |102              |   73  | null |                                                    |2           |102              |   73  | 3 |
-|2           |103              |   73  | null |                                                    |2           |103              |   73  | 4 |
+|<U>class</U>|<U>student_id</U>|weights|  seq |    |<U>class</U>|<U>student_id</U>|weights|seq|
+|:----------:|:---------------:|:-----:|:----:|:--:|:----------:|:---------------:|:-----:|:-:|
+|1           |100              |   50  | null |    |1           |100              |   50  | 1 |
+|1           |101              |   55  | null |    |1           |101              |   55  | 2 |
+|1           |102              |   56  | null |    |1           |102              |   56  | 3 |
+|2           |100              |   60  | null | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|2           |100              |   60  | 1 |
+|2           |101              |   72  | null |    |2           |101              |   72  | 2 |
+|2           |102              |   73  | null |    |2           |102              |   73  | 3 |
+|2           |103              |   73  | null |    |2           |103              |   73  | 4 |
 
 **윈도우 함수 사용**
 - 순번 할당 쿼리를 서브쿼리(SeqTbl)와 함께 사용하여 SET 구에 넣음
