@@ -343,7 +343,7 @@ WHERE diff BETWEEN 0 AND 2;
 <details>
     <summary> 세부 과정 살펴보기 </summary>
 
-|    |N1.num|N2.num|                |
+| S  |N1.num|N2.num|                |
 |:--:|:--- :|:----:|:--------------:|
 | S1 |  1   |  3   | 단절 있음(1+1≠3) |
 |    |  1   |  4   |                |
