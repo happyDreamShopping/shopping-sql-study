@@ -619,7 +619,7 @@ WHERE low IS NOT NULL;
 &nbsp;&nbsp;&nbsp;182&nbsp;&nbsp;&nbsp;&nbsp;|
 &nbsp;&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
 &nbsp;00:00:01&nbsp;|  
-> |&nbsp;*&nbsp;1&nbsp;|
+> |&nbsp;\*&nbsp;1&nbsp;|
 &nbsp;&nbsp;&nbsp;VIEW&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
 &nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
@@ -662,8 +662,6 @@ WHERE low IS NOT NULL;
 >    - 서브쿼리의 결과를 일시 테이블에 전개하는 것으로, 일시 테이블의 크기가 크면 비용이 높아질 가능성이 존재  
 >      (오라클도 중간 결과를 메모리에 유지하므로 결과가 크면 저장소를 사용)
 > - 이 쿼리의 성능은 서브쿼리의 크기에도 의존하므로 집합 지향 쿼리에 비해 좋다고 단언할 수 없음
-
-
 
 ## 25강 시퀀스 객체, IDENTITY 필드, 채번 테이블
 - 시퀀스 객체, IDENTITY 필드, 채번 테이블은 순번을 다루는 기능들
