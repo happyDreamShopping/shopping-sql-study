@@ -666,10 +666,37 @@ WHERE low IS NOT NULL;
 ## 25강 시퀀스 객체, IDENTITY 필드, 채번 테이블
 - 시퀀스 객체, IDENTITY 필드, 채번 테이블은 순번을 다루는 기능들
     - 시퀀스 객체: MySQL에서 지원하지 않음
-    - IDENTITY 필드: 오라클에서 지원하지 않음
+    - IDENTITY 필드: Oracle에서 지원하지 않음
 - 채번 테이블보다 IDENTITY 필드를, IDENTITY 필드보다 시퀀스 객체를 사용
 - 이 책에서는 셋다 모두 사용하지 않기를 권함
 
 ### 1. 시퀀스 객체
+- 테이블 또는 뷰처럼 스키마 내부에 존재하는 객체 중 하나
+- 테이블 또는 뷰를 생성할 때 사용하는 CREATE 문으로 정의 가능
+    - START 초기값
+    - INCREMENT 증가값
+    - MAXVALUE 최대값
+    - MINVALUE 최소값
+    - CYCLE 최대값에 도달했을 때 순환 유무
+
+```sql
+CREATE SEQUENCE testseq
+START WITH 1
+INCREMENT BY 1
+MAXVALUE 100000
+MINVALUE 1
+CYCLE;
+```
+
+- 이 기능이 가장 자주 사용되는 곳은 INSERT 구문
+    - 접근 구문은 구현에 따라 다름
+        - Oracle: [시퀀셜 이름].nextval/[시퀀셜 이름].currval
+        - PostgreSQL: nextval('시퀀셜 이름')/currval('시퀀셜 이름')
+        - DB2, Microsoft SQL Server: 표준 SQL을 지원
+
+```sql
+INSERT INTO HogeTbl VALUES(NEXT VALUE FOR nextval, 'a', 'b', ...);
+```
+
 ### 2. IDENTITY 필드
 ### 3. 채번 테이블
