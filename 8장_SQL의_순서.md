@@ -642,7 +642,7 @@ WHERE low IS NOT NULL;
 &nbsp;00:00:01&nbsp;|  
 > |&nbsp;&nbsp;&nbsp;4&nbsp;|
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WINDOW&nbsp;BUFFER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
 &nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
 &nbsp;&nbsp;&nbsp;&nbsp;91&nbsp;&nbsp;&nbsp;&nbsp;|
 &nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;|
