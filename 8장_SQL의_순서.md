@@ -535,8 +535,6 @@ WHERE low IS NOT NULL;
 
 [`SQL_D`](http://sqlfiddle.com/#!17/cd63e/17)
 
-TMP1
-
 |num|next_diff|prev_diff|seq|
 |:-:|:-------:|:-------:|:-:|
 | 1 |   2     |   null  | 1 |
@@ -547,7 +545,10 @@ TMP1
 | 9 |   3     |    1    | 6 |
 | 12|  null   |    3    | 7 |
 
-TMP2
+- **TMP1**
+    - 현재 레코드와 전후의 레코드에 있는 num의 차이를 구함
+    - `next_diff`가 1보다 크면 현재 레코드와 다음 레코드 사이에 비어있는 부분이 존재한다는 뜻
+    - `prev_diff`가 1보다 크면 현재 레코드와 이전 레코드 사이에 비어있는 부분이 존재한다는 뜻
 
 | low  | high |seq|
 |:----:|:----:|:-:|
@@ -559,7 +560,11 @@ TMP2
 | null |  9   | 6 |
 |  12  |  12  | 7 |
 
-TMP3
+- **TMP2**
+    - `next_diff`와 `prev_diff`의 성질을 사용해서 시퀀스의 단절이 되는 양쪽 지점의 num을 구하기
+        - `next_diff`와 `prev_diff`가 1인지를 확인해 경계값을 확인
+    - low 필드와 high 필드는 각 시퀀스의 양쪽 지점이 되는 값을 나타냄
+    - low 필드와 high 필드가 존재하지 않는 시퀀스는 제거
 
 | low  | high |
 |:----:|:----:|
@@ -571,7 +576,8 @@ TMP3
 | null |  9   |
 |  12  |  12  |
 
-최종
+- **TMP3**
+    - `low IS NOT NULL`로 불필요한 레코드를 제거
 
 | low  | high |
 |:----:|:----:|
@@ -580,9 +586,11 @@ TMP3
 |  7   |  9   |
 |  12  |  12  |
 
+- **최종결과**
+
 </details>
 
-> **QUERY PLAN**  
+> **QUERY PLAN - PostgreSQL**   
 > Subquery Scan on tmp3 (cost=383.69..479.31 rows=2537 width=8)  
 > &nbsp;&nbsp;&nbsp;&nbsp; Filter: (tmp3.low IS NOT NULL)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> WindowAgg (cost=383.69..453.81 rows=2550 width=16)  
@@ -593,6 +601,69 @@ TMP3
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> WindowAgg (cost=0.15..162.91 rows=2550 width=12)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> WindowAgg (cost=0.15..124.66 rows=2550 width=8)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Index Only Scan using numbers_pkey on numbers (cost=0.15..86.41 rows=2550 width=4)  
+
+> **QUERY PLAN - Oracle**  
+> \-------------------------------------------------------------------------------------------------  
+> |&nbsp;Id&nbsp;&nbsp;|
+&nbsp;Operation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;Rows&nbsp;|
+&nbsp;Bytes&nbsp;&nbsp;|
+&nbsp;Cost&nbsp;&nbsp;|
+&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  
+> \-------------------------------------------------------------------------------------------------  
+> |&nbsp;&nbsp;&nbsp;0&nbsp;|
+&nbsp;SELECT&nbsp;STATEMENT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;182&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;00:00:01&nbsp;|  
+> |&nbsp;*&nbsp;1&nbsp;|
+&nbsp;&nbsp;&nbsp;VIEW&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;182&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;00:00:01&nbsp;|  
+> |&nbsp;&nbsp;&nbsp;2&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;WINDOW&nbsp;SORT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;364&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;00:00:01&nbsp;|  
+> |&nbsp;&nbsp;&nbsp;3&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;VIEW&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;364&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;|
+&nbsp;00:00:01&nbsp;|  
+> |&nbsp;&nbsp;&nbsp;4&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;WINDOW&nbsp;BUFFER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;91&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;|
+&nbsp;00:00:01&nbsp;|  
+> |&nbsp;&nbsp;&nbsp;5&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;INDEX&nbsp;FULL&nbsp;SCAN&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;SYS_C007067&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;91&nbsp;&nbsp;&nbsp;&nbsp;|
+&nbsp;&nbsp;&nbsp;&nbsp;2&nbsp;&nbsp;&nbsp;|
+&nbsp;00:00:01&nbsp;|  
+> \-------------------------------------------------------------------------------------------------  
+
+> - TMP1과 TMP3에서 윈도우 함수를 사용하므로 정렬도 2회 발생
+> - PostgreSQL에서 Subquery Scan on tmp1 처럼 서브쿼리 스캔이 Tmp1과 Tmp2에서 발생  
+>   (오라클은 VIEW가 서브쿼리를 의미)
+>    - 서브쿼리의 결과를 일시 테이블에 전개하는 것으로, 일시 테이블의 크기가 크면 비용이 높아질 가능성이 존재  
+>      (오라클도 중간 결과를 메모리에 유지하므로 결과가 크면 저장소를 사용)
+> - 이 쿼리의 성능은 서브쿼리의 크기에도 의존하므로 집합 지향 쿼리에 비해 좋다고 단언할 수 없음
+
+
 
 ## 25강 시퀀스 객체, IDENTITY 필드, 채번 테이블
 - 시퀀스 객체, IDENTITY 필드, 채번 테이블은 순번을 다루는 기능들
