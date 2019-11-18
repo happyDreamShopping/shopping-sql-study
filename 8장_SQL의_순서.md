@@ -296,7 +296,6 @@ WHERE hi IN (lo, lo +1, lo -1);
 |  72  |      7     |      14      |    7   |  7 |
 
 </details>
-<br>
 
 ```sql
 SELECT AVG(weight)
@@ -369,7 +368,6 @@ WHERE diff BETWEEN 0 AND 2;
 | S6 |  9   |  12  | 단절 있음(9+1≠12)|
 
 </details>
-<br>
 
 ```sql
 SELECT (N1.num+1) AS gap_start,
@@ -538,7 +536,6 @@ TMP3
 |  12  |  12  |
 
 </details>
-</br>
 
 > **QUERY PLAN**  
 > Subquery Scan on tmp3 (cost=383.69..479.31 rows=2537 width=8)  
