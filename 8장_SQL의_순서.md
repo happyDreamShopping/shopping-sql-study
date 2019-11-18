@@ -56,6 +56,8 @@ FROM Weights W1;
 
 > - Sequential Scan이 2회 발생
 
+<br>
+
 ### 2. 기본 키가 여러 개의 필드로 구성되는 경우
 기본 키가 두개인 Weights2 테이블에 순번 붙이기 [`SQL2`](http://sqlfiddle.com/#!15/1c027/3)
 
@@ -94,6 +96,8 @@ SELECT class, student_id,
 FROM Weights2 W1;
 ```
 
+<br>
+
 ### 3. 그룹마다 순번을 붙이는 경우
 Weights2 테이블에 학급마다 순번 붙이기 [`SQL3`](http://sqlfiddle.com/#!17/1c027/2)  
 (테이블을 그룹으로 나누고 그룹마다 내부 레코드에 순번을 붙이기)
@@ -127,6 +131,8 @@ SELECT class, student_id,
         AND W2.student_id <= W1.student_id) AS seq
 FROM Weights2 W1;
 ```
+
+<br>
 
 ### 4. 순번과 갱신
 Weights3 테이블에 seq(순번) 필드를 UPDATE (채우기) [`SQL4`](http://sqlfiddle.com/#!15/f14dd5/1)
@@ -202,8 +208,6 @@ Weights6 테이블은 데이터 개수가 **짝수** (중앙값: 66)
 |C345             |  72  |      |   |
 |C478             |  90  |      |   |
 
-<br>
-
 #### 1-1) 집합 지향적 방법
 - 테이블을 상위 집합과 하위 집합으로 분할하고 공통 부분을 검색 [`SQL5`](http://sqlfiddle.com/#!15/a60c4e/5)
 - 단점: 코드가 복잡하고 성능이 좋지 않음
@@ -235,8 +239,6 @@ FROM (SELECT W1.weight
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Seq Scan on weights5 w2 (cost=0.00..25.10 rows=1510 width=4)
 
 > - Nested Loop 발생 (결합은 비용이 높고 불안정함)
-
-<br>
 
 #### 1-2) 절차 지향적 방법 1
 - 자연수의 특징을 활용하여 양쪽 끝부터 숫자 세기 [`SQL6`](http://sqlfiddle.com/#!17/a60c4e/5)
@@ -276,8 +278,6 @@ WHERE hi IN (lo, lo +1, lo -1);
 > - 결합이 사용되지 않음
 > - 정렬이 2회로 증가 (ROW_NUMBER에서 사용하는 정렬 순서가 오름차순과 내림차순으로 다르기 때문)
 >     - 결합을 제거한 대신 정렬이 1회 늘어났지만, 이러한 트레이드오프는 테이블이 클 경우 훨씬 이득
-
-<br>
 
 #### 1-3) 절차 지향적 방법 2
 - 성능적으로 가장 좋은 방법 [`SQL7`](http://sqlfiddle.com/#!17/a60c4e/7)
@@ -323,6 +323,8 @@ WHERE diff BETWEEN 0 AND 2;
 
 > - 정렬이 1회로 줄어듦
 > - 벤더의 독자적인 확장 기능에서 제공하는 중앙값 함수를 제외하면, SQL 표준으로 가장 빠른 방법임
+
+<br>
 
 ### 2. 순번을 사용한 테이블 분할
 - 테이블을 여러 개의 그룹으로 분할
@@ -447,6 +449,8 @@ WHERE diff<>1;
 > - 윈도우 함수에서 정렬이 실행됨
 > - 결합을 사용하지 않기 때문에 성능이 굉장히 안정적
 > - 집합 지향적인 방법에서는 데이터베이스 내부에서 반복이 사용되지만, 절차 지향적인 방법에서는 반복이 사용되지 않음
+
+<br>
 
 ### 3. 테이블에 존재하는 시퀀스 구하기
 - 테이블을 여러 개의 그룹으로 분할
@@ -672,6 +676,8 @@ WHERE low IS NOT NULL;
 - 채번 테이블보다 IDENTITY 필드를, IDENTITY 필드보다 시퀀스 객체를 사용
 - 이 책에서는 셋다 모두 사용하지 않기를 권함
 
+<br>
+
 ### 1. 시퀀스 객체
 - 테이블 또는 뷰처럼 스키마 내부에 존재하는 객체 중 하나
 - 테이블 또는 뷰를 생성할 때 사용하는 CREATE 문으로 정의 가능
@@ -750,6 +756,8 @@ INSERT INTO HogeTbl VALUES(NEXT VALUE FOR nextval, 'a', 'b', ...);
 2. 인덱스에 복잡한 필드를 일부러 추가하여 데이터의 분산도를 높임 
     - 논리적인 차원에서 좋은 설계가 아님
 
+<br>
+
 ### 2. IDENTITY 필드
 - 자동 순번 필드라고도 함
 - 테이블의 필드로 정의하고, 테이블에 INSERT가 발생할 때마다 자동으로 순번을 붙여 주는 기능
@@ -759,6 +767,8 @@ INSERT INTO HogeTbl VALUES(NEXT VALUE FOR nextval, 'a', 'b', ...);
     - 시퀀스 객체는 CACHE, NOORDER를 지정할 수 있음
       IDENTITY 필드는 구현에 따라 아예 사용할 수 없거나 제한적으로 사용
     - IDENTITY 필드를 사용할 때의 이점은 거의 없음
+
+<br>
 
 ### 3. 채번 테이블
 - 옛날에 만들어진 애플리케이션에서는 채번 테이블이라는 순번을 생성하는 전용 테이블을 사용
