@@ -333,7 +333,7 @@ WHERE diff BETWEEN 0 AND 2;
 |12 |    |         | |       |
 
 #### 2-1) 집합 지향적 방법 (집합의 경계선)
-- 레코드 단위가 아닌 집합 단위로 생각해보기 [`SQL9`](http://sqlfiddle.com/#!17/cd63e/1)
+- 레코드 단위가 아닌 집합 단위로 생각해보기 [`SQL8`](http://sqlfiddle.com/#!17/cd63e/1)
 - 특정 레코드의 값 `N1.num` 보다 큰 숫자의 집합을 조건 `ON N2.num > N1.num` 으로 지정
 - 세부 과정에서 S1, S3, S6을 주목
     - 특정한 숫자 `N1.num`의 다음의 숫자 `N1.num+1`가 `MIN(N2.num)`과 일치하지 않으면 단절임을 의미
@@ -390,7 +390,28 @@ HAVING (N1.num + 1) < MIN(N2.num);
 > - 집합 지향적인 방법은 자기 결합을 꼭 사용해야 하므로 Nested Loop 결합 발생
 >     - 결합을 사용하는 쿼리는 비용이 높고 실행 계획 변동 위험이 존재
 
-[`SQL10`](http://sqlfiddle.com/#!17/cd63e/2)
+#### 2-2) 절차 지향적 방법 (다음 레코드와 비교)
+- 레코드의 순서를 활용하는 방식 [`SQL9`](http://sqlfiddle.com/#!17/cd63e/2)
+    - 현재 레코드와 다음 레코드의 숫자 차이를 비교 후 차이가 1이 아니라면 사이에 비어있는 숫자가 존재
+- 윈도우 함수로 현재 레코드의 다음 레코드를 구하고 두 레코드의 숫자 차이를 diff 필드에 저장해 연산
+
+<details>
+    <summary> 세부 과정 살펴보기 </summary>
+
+- 윈도우 함수 부분의 실행 결과
+
+|num|next_num|
+|:-:|:------:|
+| 1 |    3   |
+| 3 |    4   |
+| 4 |    7   |
+| 7 |    8   |
+| 8 |    9   |
+| 9 |   12   |
+| 12|        |
+
+</details>
+
 ```sql
 SELECT NUM+1 AS gap_start,
        '~',
@@ -409,6 +430,11 @@ WHERE diff<>1;
 > &nbsp;&nbsp;&nbsp;&nbsp; Filter: (tmp.diff <> 1)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> WindowAgg (cost=0.15..131.03 rows=2550 width=8)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Index Only Scan using numbers_pkey on numbers (cost=0.15..86.41 rows=2550 width=4)  
+
+> - 테이블에 접근이 한 번만 발생
+> - 윈도우 함수에서 정렬이 실행됨
+> - 결합을 사용하지 않기 때문에 성능이 굉장히 안정적
+> - 집합 지향적인 방법에서는 데이터베이스 내부에서 반복이 사용되지만, 절차 지향적인 방법에서는 반복이 사용되지 않음
 
 ### 3. 테이블에 존재하는 시퀀스 구하기
 
