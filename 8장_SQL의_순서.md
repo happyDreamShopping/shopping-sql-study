@@ -1,5 +1,8 @@
 # 8장 SQL의 순서
 
+> 환경에 따라서 Sequential 대신 Primary Key의 인덱스를 사용한 Index Scan(또는 Index Only Scan)이 나타날 수 있음.  
+> Query Plan이 차이가 존재 (여기서는 SQL Fiddle의 Query Plan 결과를 가져오나 설명은 책을 사용)
+
 ## 23강 레코드에 순번 붙이기
 ### 1. 기본 키가 한 개의 필드일 경우
 기본 키가 한개인 Weights 테이블에 순번 붙이기 [`SQL1`](http://sqlfiddle.com/#!15/45d46/3)
@@ -51,7 +54,7 @@ FROM Weights W1;
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Bitmap Index Scan on weights_pkey (cost=0.00..7.92 rows=503 width=0)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; Index Cond: (student_id <= w1.student_id)  
 
-> - Sequence Scan이 2회 발생
+> - Sequential Scan이 2회 발생
 
 ### 2. 기본 키가 여러 개의 필드로 구성되는 경우
 기본 키가 두개인 Weights2 테이블에 순번 붙이기 [`SQL2`](http://sqlfiddle.com/#!15/1c027/3)
@@ -285,6 +288,8 @@ WHERE hi IN (lo, lo +1, lo -1);
 <details>
     <summary> 세부 과정 살펴보기 </summary>
 
+<br>
+
 |weight|ROW_NUMBER()|2*ROW_NUMBER()|COUNT(*)|diff|
 |:----:|:----------:|:------------:|:------:|:--:|
 |  50  |      1     |       2      |    7   | -5 |
@@ -321,6 +326,7 @@ WHERE diff BETWEEN 0 AND 2;
 
 ### 2. 순번을 사용한 테이블 분할
 - 테이블을 여러 개의 그룹으로 분할
+- 테이블에 존재하지 않는 수열을 찾아 그룹화하기
 
 |num|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|gap_start|~|gap_end|
 |:-:|:--:|:-------:|-|:-----:|
@@ -342,6 +348,8 @@ WHERE diff BETWEEN 0 AND 2;
 
 <details>
     <summary> 세부 과정 살펴보기 </summary>
+
+<br>
 
 |    |N1.num|N2.num|                |
 |:--:|:----:|:----:|:--------------:|
@@ -398,6 +406,8 @@ HAVING (N1.num + 1) < MIN(N2.num);
 <details>
     <summary> 세부 과정 살펴보기 </summary>
 
+<br>
+
 |num|next_num|
 |:-:|:------:|
 | 1 |    3   |
@@ -439,25 +449,23 @@ WHERE diff<>1;
 > - 집합 지향적인 방법에서는 데이터베이스 내부에서 반복이 사용되지만, 절차 지향적인 방법에서는 반복이 사용되지 않음
 
 ### 3. 테이블에 존재하는 시퀀스 구하기
+- 테이블을 여러 개의 그룹으로 분할
+- 테이블에 존재하는 수열을 찾아 그룹화하기
 
-|num|
-|:-:|
-|1  |
-|3  |
-|4  |
-|7  |
-|8  |
-|9  |
-|12 |
+|num|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|low |~|high|
+|:-:|:----:|:--:|-|:--:|
+|1  |      | 1  |~|  1 |
+|3  |      | 3  |~|  4 |
+|4  |      | 7  |~|  9 |
+|7  |      | 12 |~| 12 |
+|8  |      |    | |    |
+|9  |      |    | |    |
+|12 |      |    | |    |
 
-|low |~|high|
-|:--:|-|:--:|
-| 1  |~|  1 |
-| 3  |~|  4 |
-| 7  |~|  9 |
-| 12 |~| 12 |
-
-[`SQL11`](http://sqlfiddle.com/#!17/cd63e/4)
+#### 3-1) 집합 지향적인 방법 (집합의 경계선)
+- 존재하지 않는 시퀀스를 구하는 것보다 존재하는 시퀀스를 구하는 것이 훨씬 간단 [`SQL10`](http://sqlfiddle.com/#!17/cd63e/4)
+    - MAX/MIN 함수를 사용해서 시퀀스의 경계를 직접적으로 구할 수 있기 때문
+- 자기 결합으로 num 필드의 조합을 만들고 최대값과 최소값으로 집합의 경계를 구하는 방식 (이전과 크게 다르지 않음)
 
 ```sql
 SELECT MIN(num) AS low,
@@ -484,7 +492,14 @@ GROUP BY gp;
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Index Only Scan using numbers_pkey on numbers n2 (cost=0.15..15.05 rows=850 width=4)  
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; Index Cond: (num <= n1.num)  
 
-[`SQL12`](http://sqlfiddle.com/#!17/cd63e/7)
+> - 자기 결합을 수행
+> - 극치 함수(MAX/MIN)로 집약을 수행 (2개의 HashAggregate)
+>     - 최근의 DBMS는 집약 함수 또는 극치 함수를 사용할 때 정렬이 아니라 해시를 사용하는 알고리즘을 활용(4장에서 설명)
+
+#### 3-2) 절차 지향형 방법 (다음 레코드 하나와 비교)
+- 현재 레코드와 전후의 레코드를 비교 [`SQL11`](http://sqlfiddle.com/#!17/cd63e/7)
+    - 기본적인 방식은 이전과 비슷
+
 ```sql
 SELECT low, high
 FROM (SELECT low,
@@ -515,6 +530,8 @@ WHERE low IS NOT NULL;
 
 <details>
     <summary> 세부 과정 살펴보기 </summary>
+
+<br>
 
 [`SQL_D`](http://sqlfiddle.com/#!17/cd63e/17)
 
@@ -578,6 +595,12 @@ TMP3
 > &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; -> Index Only Scan using numbers_pkey on numbers (cost=0.15..86.41 rows=2550 width=4)  
 
 ## 25강 시퀀스 객체, IDENTITY 필드, 채번 테이블
+- 시퀀스 객체, IDENTITY 필드, 채번 테이블은 순번을 다루는 기능들
+    - 시퀀스 객체: MySQL에서 지원하지 않음
+    - IDENTITY 필드: 오라클에서 지원하지 않음
+- 채번 테이블보다 IDENTITY 필드를, IDENTITY 필드보다 시퀀스 객체를 사용
+- 이 책에서는 셋다 모두 사용하지 않기를 권함
+
 ### 1. 시퀀스 객체
 ### 2. IDENTITY 필드
 ### 3. 채번 테이블
