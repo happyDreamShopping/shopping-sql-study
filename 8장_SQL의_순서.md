@@ -398,8 +398,6 @@ HAVING (N1.num + 1) < MIN(N2.num);
 <details>
     <summary> 세부 과정 살펴보기 </summary>
 
-- 윈도우 함수 부분의 실행 결과
-
 |num|next_num|
 |:-:|:------:|
 | 1 |    3   |
@@ -409,6 +407,10 @@ HAVING (N1.num + 1) < MIN(N2.num);
 | 8 |    9   |
 | 9 |   12   |
 | 12|        |
+
+- 윈도우 함수 부분의 실행 결과
+- num과 next_num 차이가 1이 아니라면 사이에 비어있는 숫자가 존재
+    - `diff <> 1`이 조건
 
 </details>
 
