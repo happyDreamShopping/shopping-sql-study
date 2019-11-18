@@ -610,7 +610,7 @@ WHERE low IS NOT NULL;
 &nbsp;Rows&nbsp;|
 &nbsp;Bytes&nbsp;&nbsp;|
 &nbsp;Cost&nbsp;&nbsp;|
-&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  
+&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  
 > \-------------------------------------------------------------------------------------------------  
 > |&nbsp;&nbsp;&nbsp;0&nbsp;|
 &nbsp;SELECT&nbsp;STATEMENT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
